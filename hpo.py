@@ -42,7 +42,7 @@ def test(model, test_loader, criterion):
     logger.info(f'Test set: Accuracy: {running_corrects}/{len(test_loader.dataset)} = {100*(running_corrects/len(test_loader.dataset))}%)')
 
 def train(model, train_loader, validation_loader, criterion, optimizer):
-    epochs=10
+    epochs=18
     best_loss=1e6
     image_dataset={'train':train_loader, 'valid':validation_loader}
     loss_counter=0
