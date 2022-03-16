@@ -53,6 +53,7 @@ def train(model, train_loader, validation_loader, criterion, optimizer):
         for phase in ['train', 'valid']:
             if phase=='train':
                 model.train()
+                logger.info("Model Trained")
             else:
                 model.eval()
             running_loss = 0.0
@@ -66,6 +67,7 @@ def train(model, train_loader, validation_loader, criterion, optimizer):
                     optimizer.zero_grad()
                     loss.backward()
                     optimizer.step()
+                    logger.info("Model Optimized")
 
                 _, preds = torch.max(outputs, 1)
                 running_loss += loss.item() * inputs.size(0)
@@ -76,6 +78,7 @@ def train(model, train_loader, validation_loader, criterion, optimizer):
             
             
             if phase=='valid':
+                logger.info("Model Validating")
                 if epoch_loss<best_loss:
                     best_loss=epoch_loss
                 else:
@@ -86,8 +89,14 @@ def train(model, train_loader, validation_loader, criterion, optimizer):
                                                                                  epoch_loss,
                                                                                  epoch_acc,
                                                                                  best_loss))'''
-            logger.info("New epoch acc:")
-            logger.info(f"Epoch {epoch}: Loss {loss_counter/len(train_loader.dataset)}, Accuracy {100*(running_corrects/len(train_loader.dataset))}%")
+            
+            if phase=="train":
+                logger.info("New epoch acc for Train:")
+                logger.info(f"Epoch {epoch}: Loss {loss_counter/len(train_loader.dataset)}, Accuracy {100*(running_corrects/len(train_loader.dataset))}%")
+            if phase=="valid":
+                logger.info("New epoch acc for Valid:")
+                logger.info(f"Epoch {epoch}: Loss {loss_counter/len(train_loader.dataset)}, Accuracy {100*(running_corrects/len(train_loader.dataset))}%")
+            
         ##if loss_counter==1:
         ##    break
         ##if epoch==0:
