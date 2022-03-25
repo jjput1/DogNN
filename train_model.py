@@ -16,16 +16,20 @@ import logging
 import sys
 from tqdm import tqdm
 from PIL import ImageFile
+import smdebug.pytorch as smd
+
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 logger=logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 
-def test(model, test_loader, criterion):
+def test(model, test_loader, criterion, hook):
     model.eval()
     running_loss=0
     running_corrects=0
+    hook.set_mode(smd.modes.EVAL)
+    
     
     for inputs, labels in test_loader:
         outputs=model(inputs)
@@ -42,11 +46,12 @@ def test(model, test_loader, criterion):
     logger.info("New test acc")
     logger.info(f'Test set: Accuracy: {running_corrects}/{len(test_loader.dataset)} = {100*(running_corrects/len(test_loader.dataset))}%)')
 
-def train(model, train_loader, validation_loader, criterion, optimizer):
+def train(model, train_loader, validation_loader, criterion, optimizer, hook):
     epochs=50
     best_loss=1e6
     image_dataset={'train':train_loader, 'valid':validation_loader}
     loss_counter=0
+    hook.set_mode(smd.modes.TRAIN)
     
     for epoch in range(epochs):
         logger.info(f"Epoch: {epoch}")
@@ -145,18 +150,22 @@ def create_data_loaders(data, batch_size):
 def main(args):
     logger.info(f'Hyperparameters are LR: {args.lr}, Batch Size: {args.batch_size}')
     logger.info(f'Data Paths: {args.data}')
+
     
     train_loader, test_loader, validation_loader=create_data_loaders(args.data, args.batch_size)
     model=net()
+    
+    hook = smd.Hook.create_from_json_file()
+    hook.register_hook(model)
     
     criterion = nn.CrossEntropyLoss(ignore_index=133)
     optimizer = optim.Adam(model.fc.parameters(), lr=args.lr)
     
     logger.info("Starting Model Training")
-    model=train(model, train_loader, validation_loader, criterion, optimizer)
+    model=train(model, train_loader, validation_loader, criterion, optimizer, hook)
     
     logger.info("Testing Model")
-    test(model, test_loader, criterion)
+    test(model, test_loader, criterion, hook)
     
     logger.info("Saving Model")
     torch.save(model.cpu().state_dict(), os.path.join(args.model_dir, "model.pth"))
