@@ -17,6 +17,9 @@ Upload the data to an S3 bucket through the AWS Gateway so that SageMaker has ac
 ## Hyperparameter Tuning
 What kind of model did you choose for this experiment and why? Give an overview of the types of parameters and their ranges used for the hyperparameter search
 
+It was a nueral net Image Classifier because its designed to classify Images. I used learning rate, batch-size, and epochs
+"lr": ContinuousParameter(0.001, 0.1),"batch-size": CategoricalParameter([32, 64, 128, 256, 512]),"epochs": IntegerParameter(2, 4)
+
 Remember that your README should:
 - Include a screenshot of completed training jobs
 - Logs metrics during the training process
@@ -24,17 +27,19 @@ Remember that your README should:
 - Retrieve the best best hyperparameters from all your training jobs
 
 ## Debugging and Profiling
-**TODO**: Give an overview of how you performed model debugging and profiling in Sagemaker
+
+I put in hooks for debugging and profiling. Also I put in logging statements on each step so I could monitor cloud watch. I was able to see that it wasn't working with these and then make code changes to fix the issue. 
+
 
 ### Results
-**TODO**: What are the results/insights did you get by profiling/debugging your model?
 
-**TODO** Remember to provide the profiler html/pdf file in your submission.
+I used the debbugger to make a plot of the cross entropy loss over time. The profiler showed that I wasn't taxing the cpu.
+
 
 
 ## Model Deployment
 **TODO**: Give an overview of the deployed model and instructions on how to query the endpoint with a sample input.
-
+I deployed it with a simple estimator.deploy() call. It crashed however when querying it.
 **TODO** Remember to provide a screenshot of the deployed active endpoint in Sagemaker.
 
 ## Standout Suggestions
