@@ -24,7 +24,7 @@ The model was a nueral net Image Classifier because its designed to classify Ima
 
 
 Screenshot of training jobs:
-
+![alt text](https://github.com/jjput1/DogNN/blob/main/Screenshot_training_jobs.PNG)
 
 ## Files used
 The train_and_deploy.ipynb file is the step by step notebook
@@ -46,7 +46,7 @@ I used the debbugger to make a plot of the cross entropy loss over time. The pro
 I deployed the model with a simple estimator.deploy() call. It crashed however when querying it.
 
 Screenshot of deployed endpoint:
-
+![alt text](https://github.com/jjput1/DogNN/blob/main/screenshot_endpoint.PNG)
 
 ## Standout Suggestions
 
