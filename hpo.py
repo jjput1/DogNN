@@ -36,7 +36,7 @@ def test(model, test_loader, criterion):
     ##total_loss = running_loss // len(test_loader)
     ##total_acc = running_corrects.double() // len(test_loader)
     
-    ##logger.info(f"Testing Loss: {total_loss}")
+    logger.info(f"Testing Loss: {total_loss}")
     ##logger.info(f"Testing Accuracy: {total_acc}")
     logger.info("New test acc")
     logger.info(f'Test set: Accuracy: {running_corrects}/{len(test_loader.dataset)} = {100*(running_corrects/len(test_loader.dataset))}%)')
@@ -81,12 +81,12 @@ def train(model, train_loader, validation_loader, criterion, optimizer):
                     loss_counter+=1
 
             logger.info(loss_counter)
-            '''logger.info('{} loss: {:.4f}, acc: {:.4f}, best loss: {:.4f}'.format(phase,
+            logger.info('{} loss: {:.4f}, acc: {:.4f}, best loss: {:.4f}'.format(phase,
                                                                                  epoch_loss,
                                                                                  epoch_acc,
-                                                                                 best_loss))'''
-            logger.info("New epoch acc:")
-            logger.info(f"Epoch {epoch}: Loss {loss_counter/len(train_loader.dataset)}, Accuracy {100*(running_corrects/len(train_loader.dataset))}%")
+                                                                                 best_loss))
+            ##logger.info("New epoch acc:")
+            ##logger.info(f"Epoch {epoch}: Loss {loss_counter/len(train_loader.dataset)}, Accuracy {100*(running_corrects/len(train_loader.dataset))}%")
         ##if loss_counter==1:
         ##    break
         ##if epoch==0:
@@ -150,7 +150,10 @@ def main(args):
     
     logger.info("Saving Model")
     torch.save(model.cpu().state_dict(), os.path.join(args.model_dir, "model.pth"))
-
+    
+    
+    
+    
 if __name__=='__main__':
     parser=argparse.ArgumentParser()
     '''

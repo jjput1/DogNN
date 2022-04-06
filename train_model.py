@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torchvision
+import torch.nn.functional as F
 import torchvision.models as models
 import torchvision.transforms as transforms
 import json
@@ -16,7 +17,12 @@ import logging
 import sys
 from tqdm import tqdm
 from PIL import ImageFile
+from PIL import Image
 import smdebug.pytorch as smd
+import io
+import requests
+JSON_CONTENT_TYPE = 'application/json'
+JPEG_CONTENT_TYPE = 'image/jpeg'
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
@@ -100,7 +106,7 @@ def train(model, train_loader, validation_loader, criterion, optimizer, hook):
                 logger.info(f"Epoch {epoch}: Loss {loss_counter/len(train_loader.dataset)}, Accuracy {100*(running_corrects/len(train_loader.dataset))}%")
             if phase=="valid":
                 logger.info("New epoch acc for Valid:")
-                logger.info(f"Epoch {epoch}: Loss {loss_counter/len(train_loader.dataset)}, Accuracy {100*(running_corrects/len(train_loader.dataset))}%")
+                logger.info(f"Epoch {epoch}: Loss {loss_counter/len(validation_loader.dataset)}, Accuracy {100*(running_corrects/len(validation_loader.dataset))}%")
             
         ##if loss_counter==1:
         ##    break
@@ -119,6 +125,60 @@ def net():
                    nn.ReLU(inplace=True),
                    nn.Linear(128, 133))
     return model
+
+def model_fn(model_dir):
+    print("In model_fn. Model directory is -")
+    print(model_dir)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = Net().to(device)
+    
+    with open(os.path.join(model_dir, "model.pth"), "rb") as f:
+        print("Loading the dog-classifier model")
+        checkpoint = torch.load(f , map_location =device)
+        model.load_state_dict(checkpoint)
+        print('MODEL-LOADED')
+        logger.info('model loaded successfully')
+    model.eval()
+    return model
+
+
+
+
+def input_fn(request_body, content_type=JPEG_CONTENT_TYPE):
+    logger.info('Deserializing the input data.')
+    # process an image uploaded to the endpoint
+    #if content_type == JPEG_CONTENT_TYPE: return io.BytesIO(request_body)
+    logger.debug(f'Request body CONTENT-TYPE is: {content_type}')
+    logger.debug(f'Request body TYPE is: {type(request_body)}')
+    if content_type == JPEG_CONTENT_TYPE: return Image.open(io.BytesIO(request_body))
+    logger.debug('SO loded JPEG content')
+    # process a URL submitted to the endpoint
+    
+    if content_type == JSON_CONTENT_TYPE:
+        #img_request = requests.get(url)
+        logger.debug(f'Request body is: {request_body}')
+        request = json.loads(request_body)
+        logger.debug(f'Loaded JSON object: {request}')
+        url = request['url']
+        img_content = requests.get(url).content
+        return Image.open(io.BytesIO(img_content))
+    
+    raise Exception('Requested unsupported ContentType in content_type: {}'.format(content_type))
+
+# inference
+def predict_fn(input_object, model):
+    logger.info('In predict fn')
+    test_transform = transforms.Compose([
+    transforms.Resize((224, 224)),
+    transforms.ToTensor(),
+    ])
+    logger.info("transforming input")
+    input_object=test_transform(input_object)
+    
+    with torch.no_grad():
+        logger.info("Calling model")
+        prediction = model(input_object.unsqueeze(0))
+    return prediction
 
 def create_data_loaders(data, batch_size):
     train_data_path = os.path.join(data, 'train')
